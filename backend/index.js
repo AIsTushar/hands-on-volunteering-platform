@@ -1,16 +1,24 @@
-import { PrismaClient } from "@prisma/client";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
-const prisma = new PrismaClient();
+import authRoutes from "./src/routes/auth.route.js";
+import profileRoutes from "./src/routes/profile.route.js";
 
-async function main() {
-  try {
-    await prisma.$connect();
-    console.log("✅ Database connection successful!");
-  } catch (error) {
-    console.error("❌ Database connection failed:", error);
-  } finally {
-    await prisma.$disconnect();
-  }
-}
+const app = express();
+const port = process.env.PORT || 5000;
+app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
 
-main();
+dotenv.config();
+
+// Authentication APIs
+app.use("/api/auth", authRoutes);
+// Profile APIs
+app.use("/api/profile", profileRoutes);
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${process.env.PORT}`);
+});
