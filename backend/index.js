@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./src/routes/auth.route.js";
 import profileRoutes from "./src/routes/profile.route.js";
+import eventRoutes from "./src/routes/event.route.js";
 import additionalRoutes from "./src/routes/additional.route.js";
 
 const app = express();
@@ -19,6 +20,8 @@ dotenv.config();
 app.use("/api/auth", authRoutes);
 // Profile APIs
 app.use("/api/profile", profileRoutes);
+// Event APIs
+app.use("/api/event", eventRoutes);
 
 // additional APIs
 app.use("/api/additional", additionalRoutes);
