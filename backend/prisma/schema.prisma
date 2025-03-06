@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int                         @id @default(autoincrement())
+  email          String                      @unique
+  password       String
+  name           String?
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+  // Relations
+  skills         UserSkill[]                 @relation("UserSkills")
+  causes         UserCause[]                 @relation("UserCauses")
+  comments       Comment[]
+  events         Event[]                     @relation("EventParticipants")
+  createdEvents  Event[]                     @relation("EventCreator")
+  volunteerHours VolunteerHour[]
+  verifierHours  VolunteerHourVerification[]
+  helpRequests   HelpRequest[]
+}
+
+model Skill {
+  id    Int         @id @default(autoincrement())
+  name  String      @unique
+  // Relations
+  users UserSkill[] @relation("UserSkills")
+}
+
+model Cause {
+  id    Int         @id @default(autoincrement())
+  name  String      @unique
+  // Relations
+  users UserCause[] @relation("UserCauses")
+}
+
+model UserSkill {
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  skillId Int
+  user    User  @relation("UserSkills", fields: [userId], references: [id])
+  skill   Skill @relation("UserSkills", fields: [skillId], references: [id])
+}
+
+model UserCause {
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  causeId Int
+  user    User  @relation("UserCauses", fields: [userId], references: [id])
+  cause   Cause @relation("UserCauses", fields: [causeId], references: [id])
+}
+
+model Comment {
+  id            Int         @id @default(autoincrement())
+  content       String
+  createdAt     DateTime    @default(now())
+  helpRequestId Int
+  helpRequest   HelpRequest @relation(fields: [helpRequestId], references: [id])
+  userId        Int
+  user          User        @relation(fields: [userId], references: [id])
+}
+
+model Team {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events      Event[]  @relation("TeamEvents")
+}
+
+model Event {
+  id             Int             @id @default(autoincrement())
+  title          String
+  description    String
+  dateTime       DateTime
+  location       String
+  category       String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  creatorId      Int
+  creator        User            @relation("EventCreator", fields: [creatorId], references: [id])
+  participants   User[]          @relation("EventParticipants")
+  teams          Team[]          @relation("TeamEvents")
+  volunteerHours VolunteerHour[] // Add the opposite relation for VolunteerHour
+}
+
+model VolunteerHour {
+  id         Int                         @id @default(autoincrement())
+  hours      Float // Number of hours volunteered
+  date       DateTime                    @default(now())
+  isVerified Boolean                     @default(false)
+  verifiedBy VolunteerHourVerification[]
+  userId     Int
+  user       User                        @relation(fields: [userId], references: [id])
+  eventId    Int? // ID of the event (if applicable)
+  event      Event?                      @relation(fields: [eventId], references: [id]) // Add the relation to Event
+}
+
+model VolunteerHourVerification {
+  id              Int           @id @default(autoincrement())
+  volunteerHourId Int
+  verifierId      Int
+  volunteerHour   VolunteerHour @relation(fields: [volunteerHourId], references: [id])
+  verifier        User          @relation(fields: [verifierId], references: [id])
+}
+
+model HelpRequest {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id]) // Add the relation field for User
+  comments    Comment[]
+}
