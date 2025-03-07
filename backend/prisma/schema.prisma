@@ -12,6 +12,7 @@ model User {
   email          String                      @unique
   password       String
   name           String?
+  profileImage   String?
   createdAt      DateTime                    @default(now())
   updatedAt      DateTime                    @updatedAt
   // Relations
@@ -23,6 +24,7 @@ model User {
   volunteerHours VolunteerHour[]
   verifierHours  VolunteerHourVerification[]
   helpRequests   HelpRequest[]
+  offeredHelp    HelpRequestHelper[]  
 }
 
 model Skill {
@@ -79,16 +81,18 @@ model Event {
   id             Int             @id @default(autoincrement())
   title          String
   description    String
+  eventImage     String?
   dateTime       DateTime
   location       String
   category       String
+  maxParticipants Int            @default(30)            
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   creatorId      Int
   creator        User            @relation("EventCreator", fields: [creatorId], references: [id])
   participants   User[]          @relation("EventParticipants")
   teams          Team[]          @relation("TeamEvents")
-  volunteerHours VolunteerHour[] // Add the opposite relation for VolunteerHour
+  volunteerHours VolunteerHour[] 
 }
 
 model VolunteerHour {
@@ -112,10 +116,23 @@ model VolunteerHourVerification {
 }
 
 model HelpRequest {
-  id          Int       @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   title       String
   description String
+  imageUrl    String?
   userId      Int
-  user        User      @relation(fields: [userId], references: [id]) // Add the relation field for User
+  user        User          @relation(fields: [userId], references: [id])
   comments    Comment[]
+  urgency     String        @default("medium") // New field: urgency level (low, medium, urgent)
+  helpers     HelpRequestHelper[] // New relation: who offered help
+  createdAt   DateTime      @default(now())    // Timestamp for sorting requests
+}
+
+model HelpRequestHelper {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  helpRequestId Int
+  user          User        @relation(fields: [userId], references: [id])
+  helpRequest   HelpRequest @relation(fields: [helpRequestId], references: [id])
+  createdAt     DateTime    @default(now()) // When the user offered help
 }

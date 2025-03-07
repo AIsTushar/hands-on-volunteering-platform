@@ -7,6 +7,7 @@ import authRoutes from "./src/routes/auth.route.js";
 import profileRoutes from "./src/routes/profile.route.js";
 import eventRoutes from "./src/routes/event.route.js";
 import additionalRoutes from "./src/routes/additional.route.js";
+import helpRequestRoutes from "./src/routes/helpRequest.route.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,6 +23,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 // Event APIs
 app.use("/api/event", eventRoutes);
+
+//Help Request APIs
+app.use("/api/help-requests", helpRequestRoutes);
 
 // additional APIs
 app.use("/api/additional", additionalRoutes);
