@@ -78,19 +78,19 @@ function Navbar() {
         onClick={handleClick}
       >
         <span
-          className={`absolute h-0.5 w-full rounded-md bg-black transition-all duration-300 ${
+          className={`absolute h-0.5 w-full rounded-md bg-black transition-all duration-300 dark:bg-white ${
             isOpen ? "rotate-45" : "-translate-y-2"
           }`}
         ></span>
 
         <span
-          className={`absolute h-0.5 w-full rounded-md bg-black transition-all duration-300 ${
+          className={`absolute h-0.5 w-full rounded-md bg-black transition-all duration-300 dark:bg-white ${
             isOpen ? "translate-x-2 opacity-0" : "opacity-100"
           }`}
         ></span>
 
         <span
-          className={`absolute h-0.5 w-full rounded-md bg-black transition-all duration-300 ${
+          className={`absolute h-0.5 w-full rounded-md bg-black transition-all duration-300 dark:bg-white ${
             isOpen ? "-rotate-45" : "translate-y-2"
           }`}
         ></span>
