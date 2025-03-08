@@ -27,7 +27,7 @@ function RequestCard() {
         </div>
 
         {/* Request Title */}
-        <Link to="/requests">
+        <Link to="/help-requests/1">
           <h2 className="mb-4 font-semibold text-gray-900 hover:underline dark:text-gray-100">
             Urgent: Flood relief volunteers needed
           </h2>
