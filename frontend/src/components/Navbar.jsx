@@ -2,6 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import { MoonIcon, SunIcon } from "./icons";
 import { useState } from "react";
 import useThemeSwitcher from "../hooks/useThemeSwitcher";
+import { useAuthStore } from "../store/authStore";
 
 const CustomLinks = ({ href, title, className = "" }) => {
   return (
@@ -30,6 +31,8 @@ const CustomLinks = ({ href, title, className = "" }) => {
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useThemeSwitcher();
+  const { isAuthenticated, logout, user } = useAuthStore();
+  console.log(isAuthenticated, user);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
@@ -56,8 +59,27 @@ function Navbar() {
       </nav>
 
       <nav className="hidden items-center justify-center gap-4 text-lg md:flex">
-        <CustomLinks title="Login" href="/login" />
-        <CustomLinks title="SignUp" href="/signup" />
+        {isAuthenticated ? (
+          <div className="flex items-center gap-4">
+            <span className="cursor-pointer" onClick={logout}>
+              Logout
+            </span>
+            <Link to="/profile">
+              <img
+                className="h-8 w-8 rounded-full"
+                src={
+                  user?.profileImage ? user?.profileImage : "/user/default.jpg"
+                }
+              />
+            </Link>
+          </div>
+        ) : (
+          <>
+            <CustomLinks title="Login" href="/login" />
+            <CustomLinks title="SignUp" href="/signup" />
+          </>
+        )}
+
         <button
           className={`ml-3 flex w-6 cursor-pointer items-center justify-center rounded-full ${
             mode === "light" ? "bg-black text-white" : "bg-white text-black"
@@ -106,8 +128,28 @@ function Navbar() {
           </nav>
 
           <nav className="flex items-center justify-center gap-4 text-lg">
-            <CustomLinks title="Login" href="/login" />
-            <CustomLinks title="SignUp" href="/signup" />
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <span className="cursor-pointer" onClick={logout}>
+                  Logout
+                </span>
+                <Link to="/profile">
+                  <img
+                    className="h-8 w-8 rounded-full"
+                    src={
+                      user?.profileImage
+                        ? user?.profileImage
+                        : "/user/default.jpg"
+                    }
+                  />
+                </Link>
+              </div>
+            ) : (
+              <>
+                <CustomLinks title="Login" href="/login" />
+                <CustomLinks title="SignUp" href="/signup" />
+              </>
+            )}
 
             <button
               className={`ml-3 flex w-6 items-center justify-center rounded-full ${

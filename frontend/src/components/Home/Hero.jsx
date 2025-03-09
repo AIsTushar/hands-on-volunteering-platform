@@ -15,7 +15,7 @@ function Hero() {
         <div className="flex items-center justify-center gap-4">
           <Link
             to={"/signup"}
-            className="rounded-lg border-2 border-black bg-transparent px-4 py-2 text-lg font-semibold text-black transition duration-300 ease-in-out hover:bg-white hover:text-black dark:border-white dark:text-white"
+            className="rounded-lg border-2 border-black bg-transparent px-4 py-2 text-lg font-semibold text-black transition duration-300 ease-in-out hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black"
           >
             Get Started
           </Link>

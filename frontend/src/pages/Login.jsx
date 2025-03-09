@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -8,7 +10,8 @@ function Login() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { isLoading, error, login } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,16 +21,20 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login data:", formData);
-      setLoading(false);
-      // Here you would typically make an actual API call
-    }, 1500);
+    try {
+      await login(formData.email, formData.password);
+      setFormData({
+        email: "",
+        password: "",
+      });
+      toast.success("Login successful", { duration: 5000 });
+      navigate("/profile");
+    } catch (err) {
+      console.log(err);
+      toast.error(error.message, { duration: 5000 });
+    }
   };
   return (
     <div className="flex min-h-screen flex-col justify-center bg-white py-12 sm:px-6 lg:px-8 dark:bg-black">
@@ -109,10 +116,10 @@ function Login() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="flex w-full cursor-pointer justify-center rounded-lg bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:bg-gray-900 active:scale-95 dark:border dark:border-gray-300"
               >
-                {loading ? (
+                {isLoading ? (
                   <svg
                     className="h-5 w-5 animate-spin text-white"
                     xmlns="http://www.w3.org/2000/svg"

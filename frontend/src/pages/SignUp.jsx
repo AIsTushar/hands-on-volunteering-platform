@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Mail, User, Lock, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +12,9 @@ const SignUp = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  const { signup, error, isLoading } = useAuthStore();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,7 +54,7 @@ const SignUp = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
 
@@ -59,14 +63,20 @@ const SignUp = () => {
       return;
     }
 
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Form submitted:", formData);
-      setIsSubmitting(false);
-      // Here you would normally redirect after successful signup
-    }, 1500);
+    try {
+      await signup(formData.name, formData.email, formData.password);
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+      });
+      setErrors({});
+      toast.success("Account created successfully");
+      navigate("/profile");
+    } catch (err) {
+      console.log(err);
+      toast.error(error);
+    }
   };
 
   return (
@@ -196,10 +206,10 @@ const SignUp = () => {
             <div>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className="flex w-full cursor-pointer justify-center rounded-lg bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:bg-gray-900 active:scale-95 dark:border dark:border-gray-300"
               >
-                {isSubmitting ? (
+                {isLoading ? (
                   "Creating account..."
                 ) : (
                   <div className="flex items-center">
