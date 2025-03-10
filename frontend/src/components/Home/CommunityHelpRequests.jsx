@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import RequestCard from "../cards/RequestCard";
 
-function CommunityHelpRequests() {
+function CommunityHelpRequests({ helpRequests }) {
   return (
     <div className="container mx-auto mt-32 px-16">
       <div className="flex items-center justify-between py-8">
@@ -17,11 +17,9 @@ function CommunityHelpRequests() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <RequestCard />
-        <RequestCard />
-        <RequestCard />
-        <RequestCard />
-        <RequestCard />
+        {helpRequests.map((request) => {
+          return <RequestCard request={request} />;
+        })}
       </div>
     </div>
   );

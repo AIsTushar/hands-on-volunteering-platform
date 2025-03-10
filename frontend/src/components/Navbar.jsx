@@ -32,7 +32,6 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useThemeSwitcher();
   const { isAuthenticated, logout, user } = useAuthStore();
-  console.log(isAuthenticated, user);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));

@@ -1,12 +1,13 @@
 import { CircleUser, MessageCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
-function RequestCard() {
+function RequestCard({ request }) {
+  console.log(request);
   return (
     <div className="max-w-sm overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-gray-800">
       {/* Request Image */}
       <img
-        src="https://images.pexels.com/photos/8386749/pexels-photo-8386749.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+        src={request.imageUrl}
         alt="request Image"
         className="h-36 w-full object-cover"
       />
@@ -21,15 +22,15 @@ function RequestCard() {
             className="h-10 w-10 rounded-full"
           />
           <div>
-            <p className="text-sm font-semibold">John Doe</p>
+            <p className="text-sm font-semibold">{request.user.name}</p>
             <p className="text-xs text-gray-500">2h ago</p>
           </div>
         </div>
 
         {/* Request Title */}
-        <Link to="/help-requests/1">
+        <Link to={`/help-requests/${request.id}`}>
           <h2 className="mb-4 font-semibold text-gray-900 hover:underline dark:text-gray-100">
-            Urgent: Flood relief volunteers needed
+            {request.title}
           </h2>
         </Link>
 
@@ -39,21 +40,21 @@ function RequestCard() {
           {/* Registered Participants */}
           <div className="flex items-center justify-center py-2">
             <span className="rounded-lg bg-red-300 px-2 py-1 text-xs text-red-500">
-              Urgent
+              {request.urgency}
             </span>
           </div>
 
           {/* Maximum Participants */}
           <div className="flex items-center justify-center py-2">
             <Users className="h-4 w-4" />
-            <span className="ml-1">30</span>
+            <span className="ml-1">{request._count.helpers}</span>
             <span className="ml-1 text-sm text-gray-500">joined</span>
           </div>
 
           {/* Spaces Left */}
           <div className="flex items-center justify-center py-2">
             <MessageCircle className="h-4 w-4" />
-            <span className="ml-1">14</span>
+            <span className="ml-1">{request._count.comments}</span>
             <span className="ml-1 text-sm text-gray-500">comments</span>
           </div>
         </div>

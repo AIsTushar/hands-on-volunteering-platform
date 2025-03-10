@@ -8,6 +8,7 @@ import profileRoutes from "./src/routes/profile.route.js";
 import eventRoutes from "./src/routes/event.route.js";
 import additionalRoutes from "./src/routes/additional.route.js";
 import helpRequestRoutes from "./src/routes/helpRequest.route.js";
+import { getHomePageData } from "./src/controllers/others.controller.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -16,6 +17,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 dotenv.config();
+
+app.get("/home", getHomePageData);
 
 // Authentication APIs
 app.use("/api/auth", authRoutes);

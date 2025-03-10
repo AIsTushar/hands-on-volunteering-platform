@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import EventCard from "../cards/EventCard";
 
-function UpcommingEvent() {
+function UpcommingEvent({ events }) {
   return (
     <div className="container mx-auto px-16">
       <div className="flex items-center justify-between py-8">
@@ -17,12 +17,9 @@ function UpcommingEvent() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <EventCard />
-        <EventCard />
-        <EventCard />
-        <EventCard />
-        <EventCard />
-        <EventCard />
+        {events.map((event) => {
+          return <EventCard event={event} />;
+        })}
       </div>
     </div>
   );

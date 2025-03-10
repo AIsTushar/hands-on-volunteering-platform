@@ -1,7 +1,7 @@
 import { Calendar, CircleUser, Clock, MapPin, User, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
-function EventCard() {
+function EventCard({ event }) {
   return (
     <div className="container mx-auto flex justify-center md:justify-start">
       <div className="my-4 max-w-sm overflow-hidden rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl">
