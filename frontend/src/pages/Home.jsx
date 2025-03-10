@@ -13,6 +13,7 @@ function Home() {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true);
       try {
         const response = await axios.get("http://localhost:5000/home");
 

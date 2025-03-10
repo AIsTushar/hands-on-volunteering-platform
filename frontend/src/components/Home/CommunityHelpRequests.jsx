@@ -18,7 +18,7 @@ function CommunityHelpRequests({ helpRequests }) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {helpRequests.map((request) => {
-          return <RequestCard request={request} />;
+          return <RequestCard request={request} key={request.id} />;
         })}
       </div>
     </div>

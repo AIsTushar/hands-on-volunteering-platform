@@ -2,7 +2,6 @@ import { CircleUser, MessageCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function RequestCard({ request }) {
-  console.log(request);
   return (
     <div className="max-w-sm overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-gray-800">
       {/* Request Image */}

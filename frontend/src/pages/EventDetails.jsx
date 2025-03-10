@@ -9,35 +9,37 @@ import {
   Heart,
   Award,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import Loading from "../components/Loading";
+import axios from "axios";
+import { useParams } from "react-router-dom";
 
 function EventDetails() {
-  // Sample event data (in a real app, this would come from props or API)
-  const event = {
-    id: 2,
-    title: "Waste Management Seminar",
-    description:
-      "Experts will discuss innovative waste reduction strategies for urban areas. Topics include plastic alternatives, composting techniques, and community recycling programs implementation. Certificate provided to all attendees.",
-    eventImage:
-      "https://i.pinimg.com/736x/4f/0c/cd/4f0ccdc6cfc43be89ceed82cead2775d.jpg",
-    dateTime: "2025-03-18T14:00:00.000Z",
-    location: "Dhaka University, Bangladesh",
-    category: "Environment",
-    maxParticipants: 30,
-    createdAt: "2025-03-06T18:21:32.275Z",
-    updatedAt: "2025-03-06T18:21:32.275Z",
-    creatorId: 1,
-    _count: {
-      participants: 0,
-    },
-    creator: {
-      id: 1,
-      name: "John Doe",
-      email: "testuser1@gmail.com",
-    },
-    participantsJoined: 0,
-    spacesLeft: 30,
-    isAvailable: true,
-  };
+  const [event, setEvent] = useState({});
+  const [loading, setLoading] = useState(true);
+  const id = useParams().id;
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/event/${id}`,
+        );
+
+        console.log(response.data);
+
+        setEvent(response.data);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, [id]);
 
   // Format date and time
   const formatDate = (dateString) => {
@@ -58,6 +60,21 @@ function EventDetails() {
     });
   };
 
+  const getFutureDate = (dateString) => {
+    const today = new Date();
+    const futureDate = new Date(dateString);
+
+    const diffTime = futureDate - today;
+
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <div className="min-h-screen w-full pt-16 dark:bg-black">
       <div className="mx-auto max-w-5xl rounded-md border border-gray-300 bg-white px-16 py-8 dark:border-gray-800 dark:bg-black">
@@ -72,11 +89,13 @@ function EventDetails() {
         {/* Event Status Banner */}
         <div className="mb-6 flex w-full items-center justify-between rounded-lg bg-green-100 p-3 dark:bg-gray-700">
           <div className="flex items-center">
-            <span className="mr-3 rounded-full bg-green-500 px-3 py-1 text-sm font-semibold text-white">
-              Available
+            <span
+              className={`mr-3 rounded-full ${event.isAvailable ? "bg-green-500" : "bg-red-500"} px-3 py-1 text-sm font-semibold text-white`}
+            >
+              {event.isAvailable ? "Available" : "Not Available"}
             </span>
             <span className="font-medium text-green-800 dark:text-white">
-              Registration Open
+              {event.isAvailable ? "Registration Open" : "Registration Closed"}
             </span>
           </div>
           <div className="flex space-x-2">
@@ -165,7 +184,7 @@ function EventDetails() {
           {/* Right Column - Registration Card */}
           <div className="md:col-span-1">
             <div className="sticky top-6 rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:bg-black dark:text-white">
-              <h2 className="mb-4 text-xl font-bold text-gray-800">
+              <h2 className="mb-4 text-xl font-bold text-gray-800 dark:text-gray-400">
                 Registration
               </h2>
 
@@ -199,16 +218,26 @@ function EventDetails() {
 
               {/* Registration Deadline */}
               <div className="mb-6 rounded-lg bg-blue-50 p-4 dark:bg-gray-800 dark:text-white">
-                <div className="flex items-center text-blue-800">
-                  <Clock className="mr-2 h-5 w-5" />
-                  <span className="font-medium">closes in 9 days</span>
-                </div>
+                {event.isAvailable ? (
+                  <div className="flex items-center text-blue-800">
+                    <Clock className="mr-2 h-5 w-5" />
+                    <span className="font-medium">
+                      Closes in {getFutureDate(event.dateTime)} days
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-medium text-red-500 capitalize">
+                    closed
+                  </span>
+                )}
               </div>
 
               {/* CTA Button */}
-              <button className="cursor-pointer rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:bg-gray-900 active:scale-95 dark:border-white">
-                Join Us
-              </button>
+              {event.isAvailable ? (
+                <button className="cursor-pointer rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:bg-gray-900 active:scale-95 dark:border-white">
+                  Join Us
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
