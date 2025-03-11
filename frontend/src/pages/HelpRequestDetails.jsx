@@ -9,95 +9,36 @@ import {
   Share2,
   Flag,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import Loading from "../components/Loading";
+import axios from "axios";
+import { getUrgencyColor } from "../utils/Helper";
 
-function helpRequestDetails() {
-  const helpRequest = {
-    id: 1,
-    title: "Need volunteers for elderly home visit",
-    description:
-      "Looking for 5 volunteers to visit Golden Age Home this weekend. We'll be spending time with seniors, helping with small tasks, and organizing a small music session. No special skills required, just a friendly attitude!",
-    imageUrl: "/api/placeholder/800/400", // Using placeholder as external images aren't supported
-    userId: 1,
-    urgency: "medium",
-    createdAt: "2025-03-07T09:38:57.535Z",
-    user: {
-      id: 1,
-      name: "John Doe",
-      profileImage: null,
-    },
-    comments: [
-      {
-        id: 2,
-        content:
-          "I'd like to join! I have experience working with elderly people and can bring my guitar for the music session.",
-        createdAt: "2025-03-08T15:52:15.795Z",
-        helpRequestId: 1,
-        userId: 2,
-        user: {
-          id: 2,
-          name: "Test User Two",
-          profileImage: null,
-        },
-      },
-      {
-        id: 2,
-        content:
-          "I'd like to join! I have experience working with elderly people and can bring my guitar for the music session.",
-        createdAt: "2025-03-08T15:52:15.795Z",
-        helpRequestId: 1,
-        userId: 2,
-        user: {
-          id: 2,
-          name: "Test User Two",
-          profileImage: null,
-        },
-      },
-      {
-        id: 2,
-        content:
-          "I'd like to join! I have experience working with elderly people and can bring my guitar for the music session.",
-        createdAt: "2025-03-08T15:52:15.795Z",
-        helpRequestId: 1,
-        userId: 2,
-        user: {
-          id: 2,
-          name: "Test User Two",
-          profileImage: null,
-        },
-      },
-      {
-        id: 2,
-        content:
-          "I'd like to join! I have experience working with elderly people and can bring my guitar for the music session.",
-        createdAt: "2025-03-08T15:52:15.795Z",
-        helpRequestId: 1,
-        userId: 2,
-        user: {
-          id: 2,
-          name: "Test User Two",
-          profileImage: null,
-        },
-      },
-    ],
-    helpers: [
-      {
-        id: 2,
-        userId: 2,
-        helpRequestId: 1,
-        createdAt: "2025-03-07T10:07:30.656Z",
-        user: {
-          id: 2,
-          name: "Test User Two",
-          profileImage: null,
-        },
-      },
-    ],
-    _count: {
-      helpers: 1,
-      comments: 4,
-    },
-  };
+function HelpRequestDetails() {
+  const [helpRequest, setHelpRequest] = useState({});
+  const [loading, setLoading] = useState(true);
+  const id = useParams().id;
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/help-requests/${id}`,
+        );
+
+        setHelpRequest(response.data);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, [id]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -123,19 +64,9 @@ function helpRequestDetails() {
     }
   };
 
-  // Map urgency to color
-  const getUrgencyColor = (urgency) => {
-    switch (urgency) {
-      case "high":
-        return "bg-red-100 text-red-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen w-full pt-16 dark:bg-black">
@@ -173,7 +104,7 @@ function helpRequestDetails() {
             {/* Help Request Image */}
             <div className="mb-6">
               <img
-                src="https://i.pinimg.com/736x/e9/fd/db/e9fddb8a857fdcb37012382587b3b6c6.jpg"
+                src={helpRequest.imageUrl}
                 alt="Elderly home visit"
                 className="h-64 w-full rounded-lg object-cover shadow-md"
               />
@@ -263,7 +194,7 @@ function helpRequestDetails() {
                   <span className="font-medium dark:text-white">Helpers</span>
                 </div>
                 <span className="rounded-full bg-blue-100 px-2 py-1 text-sm font-medium text-blue-800">
-                  {helpRequest._count.helpers} / 5
+                  {helpRequest._count.helpers} helpers
                 </span>
               </div>
 
@@ -295,7 +226,7 @@ function helpRequestDetails() {
               </div>
 
               {/* Offer Help Button */}
-              <button className="flex w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700">
+              <button className="flex w-full cursor-pointer items-center justify-center rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95 dark:border-white">
                 <UserPlus className="mr-2 h-5 w-5" />
                 Offer Help
               </button>
@@ -352,4 +283,4 @@ function helpRequestDetails() {
   );
 }
 
-export default helpRequestDetails;
+export default HelpRequestDetails;

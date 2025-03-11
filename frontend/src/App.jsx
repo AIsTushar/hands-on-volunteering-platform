@@ -13,6 +13,7 @@ import { useAuthStore } from "./store/authStore";
 import Loading from "./components/Loading";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AllEvent from "./pages/AllEvent";
 
 function App() {
   const { checkAuth, isCheckingAuth } = useAuthStore();
@@ -33,6 +34,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="events/:id" element={<EventDetails />} />
           <Route path="help-requests/:id" element={<HelpRequestDetails />} />
+          <Route path="/events" element={<AllEvent />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<SignUp />} />
           <Route element={<ProtectedRoute />}>

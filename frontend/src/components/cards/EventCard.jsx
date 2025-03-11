@@ -70,7 +70,7 @@ function EventCard({ event }) {
             </div>
 
             <div className="mt-2 flex justify-end border-t-[0.5px] border-gray-200 pt-3 dark:border-gray-700">
-              <button className="cursor-pointer rounded-lg bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:bg-gray-900 active:scale-95">
+              <button className="cursor-pointer rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95">
                 Join Us
               </button>
             </div>

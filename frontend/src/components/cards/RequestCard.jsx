@@ -1,5 +1,6 @@
 import { CircleUser, MessageCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getUrgencyColor } from "../../utils/Helper";
 
 function RequestCard({ request }) {
   return (
@@ -27,18 +28,22 @@ function RequestCard({ request }) {
         </div>
 
         {/* Request Title */}
-        <Link to={`/help-requests/${request.id}`}>
-          <h2 className="mb-4 font-semibold text-gray-900 hover:underline dark:text-gray-100">
-            {request.title}
-          </h2>
-        </Link>
+        <div className="h-16 w-full">
+          <Link to={`/help-requests/${request.id}`}>
+            <h2 className="mb-4 font-semibold text-gray-900 hover:underline dark:text-gray-100">
+              {request.title}
+            </h2>
+          </Link>
+        </div>
 
         {/* Urgency Level */}
 
         <div className="flex flex-wrap items-center gap-5 dark:text-gray-400">
           {/* Registered Participants */}
           <div className="flex items-center justify-center py-2">
-            <span className="rounded-lg bg-red-300 px-2 py-1 text-xs text-red-500">
+            <span
+              className={`rounded-lg px-2 py-1 text-xs uppercase ${getUrgencyColor(request.urgency)}`}
+            >
               {request.urgency}
             </span>
           </div>
@@ -60,7 +65,7 @@ function RequestCard({ request }) {
 
         {/* Offer Help Button */}
         <div className="mt-2 flex justify-end border-t-[0.5px] border-gray-200 pt-3 dark:border-gray-700">
-          <button className="cursor-pointer rounded-lg bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:bg-gray-900 active:scale-95">
+          <button className="cursor-pointer rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95">
             Offer Help
           </button>
         </div>

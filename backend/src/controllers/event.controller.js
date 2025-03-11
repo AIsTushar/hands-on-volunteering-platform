@@ -2,17 +2,105 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 // Get all events with filters
+// export const getEvents = async (req, res) => {
+//   const { category, location } = req.query;
+//   try {
+//     const events = await prisma.event.findMany({
+//       where: {
+//         ...(category && { category }),
+//         ...(location && { location }),
+//       },
+//       include: {
+//         _count: { select: { participants: true } },
+//       },
+//     });
+
+//     // Add availability information for each event
+//     const eventsWithAvailability = events.map((event) => {
+//       const participantsJoined = event._count.participants;
+//       const spacesLeft = event.maxParticipants - participantsJoined;
+//       const isAvailable =
+//         spacesLeft > 0 && new Date(event.dateTime) > new Date();
+
+//       return {
+//         ...event,
+//         participantsJoined,
+//         spacesLeft,
+//         isAvailable,
+//       };
+//     });
+
+//     res.json(eventsWithAvailability);
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Error fetching events", error });
+//   }
+// };
+
 export const getEvents = async (req, res) => {
-  const { category, location } = req.query;
+  const {
+    category,
+    location,
+    search,
+    date,
+    sortBy = "dateTime",
+    sortOrder = "desc",
+    page = 1,
+    limit = 12,
+  } = req.query;
+
   try {
+    // Calculate pagination values
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    // Build the where clause for filtering
+    const where = {
+      // Category filter - handle multiple categories
+      ...(category && {
+        category: Array.isArray(category) ? { in: category } : category,
+      }),
+
+      // Location filter - case-insensitive partial match
+      ...(location && {
+        location: {
+          contains: location,
+          mode: "insensitive",
+        },
+      }),
+
+      // Search functionality - search in title and description
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+        ],
+      }),
+
+      // Date filter - filter events on specified date
+      ...(date && {
+        dateTime: {
+          gte: new Date(`${date}T00:00:00`),
+          lt: new Date(`${date}T23:59:59`),
+        },
+      }),
+    };
+
+    // Get count for pagination
+    const totalCount = await prisma.event.count({ where });
+
+    // Get events with filtering, sorting and pagination
     const events = await prisma.event.findMany({
-      where: {
-        ...(category && { category }),
-        ...(location && { location }),
-      },
+      where,
       include: {
         _count: { select: { participants: true } },
       },
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      skip,
+      take,
     });
 
     // Add availability information for each event
@@ -22,19 +110,45 @@ export const getEvents = async (req, res) => {
       const isAvailable =
         spacesLeft > 0 && new Date(event.dateTime) > new Date();
 
+      // Format dateTime for easier frontend handling
+      const formattedDateTime = new Date(event.dateTime);
+
       return {
         ...event,
         participantsJoined,
         spacesLeft,
         isAvailable,
+        formattedDate: formattedDateTime.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        formattedTime: formattedDateTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
     });
 
-    res.json(eventsWithAvailability);
+    // Return pagination metadata along with results
+    res.json({
+      events: eventsWithAvailability,
+      pagination: {
+        total: totalCount,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(totalCount / parseInt(limit)),
+      },
+    });
   } catch (error) {
+    console.error("Error fetching events:", error);
     res
       .status(500)
-      .json({ success: false, message: "Error fetching events", error });
+      .json({
+        success: false,
+        message: "Error fetching events",
+        error: error.message,
+      });
   }
 };
 
