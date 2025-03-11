@@ -2,14 +2,65 @@ import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
 // Get User Profile
 export const getProfile = async (req, res) => {
-  const { id } = req.params;
+  const userId = req.userId;
+  console.log(userId);
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: Number(id) },
-      select: { id: true, name: true, email: true, skills: true, causes: true },
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profileImage: true,
+        createdAt: true,
+        skills: {
+          include: {
+            skill: true,
+          },
+        },
+        causes: {
+          include: {
+            cause: true,
+          },
+        },
+        events: {
+          select: {
+            id: true,
+            title: true,
+            dateTime: true,
+            location: true,
+            category: true,
+          },
+        },
+        volunteerHours: {
+          include: {
+            event: {
+              select: {
+                title: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+        },
+        helpRequests: {
+          select: {
+            id: true,
+            title: true,
+            urgency: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 5,
+        },
+      },
     });
 
     if (!user) {
@@ -18,7 +69,22 @@ export const getProfile = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, user });
+    // Calculate total volunteer hours
+    const totalHours = user.volunteerHours.reduce((sum, record) => {
+      return sum + (record.isVerified ? record.hours : 0);
+    }, 0);
+
+    // Calculate impact points (5 points per verified hour)
+    const impactPoints = Math.floor(totalHours * 5);
+
+    // Add computed fields to response
+    const userWithStats = {
+      ...user,
+      totalVolunteerHours: totalHours,
+      impactPoints: impactPoints,
+    };
+
+    res.json({ success: true, user: userWithStats });
   } catch (error) {
     res
       .status(500)

@@ -53,7 +53,7 @@ function Navbar() {
       <nav className="hidden items-center justify-center gap-4 text-lg md:flex">
         <CustomLinks title="Home" href="/" />
         <CustomLinks title="Events" href="/events" />
-        <CustomLinks title="Community" href="/community-requests" />
+        <CustomLinks title="Community" href="/help-requests" />
         <CustomLinks title="Teams" href="/teams" />
       </nav>
 

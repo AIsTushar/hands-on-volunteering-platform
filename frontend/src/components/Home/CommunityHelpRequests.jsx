@@ -11,7 +11,7 @@ function CommunityHelpRequests({ helpRequests }) {
             People in your community who need assistance.
           </p>
         </div>
-        <Link to="/" className="text-lg underline">
+        <Link to="/help-requests" className="text-lg underline">
           more
         </Link>
       </div>

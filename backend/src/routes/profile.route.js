@@ -8,7 +8,7 @@ import {
 } from "../controllers/profile.controller.js";
 const router = express.Router();
 
-router.get("/:id", getProfile); // Get profile by user ID
+router.get("/", verifyToken, getProfile); // Get profile (protected)
 router.put("/", verifyToken, updateProfile); // Update profile (protected)
 router.put("/ChangePassword", verifyToken, updatePassword); // Change password (protected)
 router.delete("/", verifyToken, deleteAccount); // Delete account (protected)

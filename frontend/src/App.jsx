@@ -14,6 +14,7 @@ import Loading from "./components/Loading";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AllEvent from "./pages/AllEvent";
+import AllHelpRequests from "./pages/AllHelpRequests";
 
 function App() {
   const { checkAuth, isCheckingAuth } = useAuthStore();
@@ -35,6 +36,7 @@ function App() {
           <Route path="events/:id" element={<EventDetails />} />
           <Route path="help-requests/:id" element={<HelpRequestDetails />} />
           <Route path="/events" element={<AllEvent />} />
+          <Route path="/help-requests" element={<AllHelpRequests />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<SignUp />} />
           <Route element={<ProtectedRoute />}>
