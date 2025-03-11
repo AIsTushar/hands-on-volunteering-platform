@@ -41,7 +41,7 @@ function Navbar() {
     setIsOpen(!isOpen);
   };
   return (
-    <header className="font-Poppins flex items-center justify-between border-b border-gray-300 px-16 py-6 dark:border-gray-100 dark:bg-black dark:text-white">
+    <header className="font-Poppins flex h-22 items-center justify-between border-b border-gray-300 px-16 py-6 dark:border-gray-100 dark:bg-black dark:text-white">
       <Link to={"/"}>
         <img
           src={`${mode === "light" ? "/HandsOn.png" : "/HandsOn_white.png"}`}

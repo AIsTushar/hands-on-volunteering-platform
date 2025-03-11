@@ -1,7 +1,8 @@
-import DashBoard from "../components/profile/DashBoard";
-import SideNav from "../components/profile/SideNav";
+import { Outlet } from "react-router-dom";
+import SideNav from "./SideNav";
+import Navbar from "../Navbar";
 
-function Profile() {
+function ProfileLayout() {
   const userData = {
     success: true,
     user: {
@@ -68,16 +69,26 @@ function Profile() {
   const user = userData.user;
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Side Navigation Bar */}
-      <SideNav />
+    <div className="flex h-screen flex-col">
+      {/* Fixed Top Navbar */}
+      <div className="fixed top-0 left-0 z-50 w-full">
+        <Navbar />
+      </div>
 
       {/* Main Content Area */}
-      <div className="ml-64 flex-1 p-8">
-        <DashBoard user={user} />
+      <div className="flex flex-1 pt-22">
+        {/* Sticky Sidebar */}
+        <aside className="fixed left-0 h-screen w-64 shadow-lg">
+          <SideNav />
+        </aside>
+
+        {/* Scrollable Content */}
+        <main className="mt-16 ml-64 flex-1 overflow-auto p-6">
+          <Outlet context={user} />
+        </main>
       </div>
     </div>
   );
 }
 
-export default Profile;
+export default ProfileLayout;
