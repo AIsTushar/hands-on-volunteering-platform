@@ -83,7 +83,7 @@ function ProfileLayout() {
         </aside>
 
         {/* Scrollable Content */}
-        <main className="mt-16 ml-64 flex-1 overflow-auto p-6">
+        <main className="ml-64 flex-1 overflow-auto rounded-md bg-gray-100 px-24 pt-16">
           <Outlet context={user} />
         </main>
       </div>

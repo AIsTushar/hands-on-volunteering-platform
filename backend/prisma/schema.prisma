@@ -15,9 +15,9 @@ model User {
   profileImage   String?
   createdAt      DateTime                    @default(now())
   updatedAt      DateTime                    @updatedAt
+  skills         String[]                 
+  causes         String[]                
   // Relations
-  skills         UserSkill[]                 @relation("UserSkills")
-  causes         UserCause[]                 @relation("UserCauses")
   comments       Comment[]
   events         Event[]                     @relation("EventParticipants")
   createdEvents  Event[]                     @relation("EventCreator")
@@ -27,35 +27,8 @@ model User {
   offeredHelp    HelpRequestHelper[]  
 }
 
-model Skill {
-  id    Int         @id @default(autoincrement())
-  name  String      @unique
-  // Relations
-  users UserSkill[] @relation("UserSkills")
-}
 
-model Cause {
-  id    Int         @id @default(autoincrement())
-  name  String      @unique
-  // Relations
-  users UserCause[] @relation("UserCauses")
-}
 
-model UserSkill {
-  id      Int   @id @default(autoincrement())
-  userId  Int
-  skillId Int
-  user    User  @relation("UserSkills", fields: [userId], references: [id])
-  skill   Skill @relation("UserSkills", fields: [skillId], references: [id])
-}
-
-model UserCause {
-  id      Int   @id @default(autoincrement())
-  userId  Int
-  causeId Int
-  user    User  @relation("UserCauses", fields: [userId], references: [id])
-  cause   Cause @relation("UserCauses", fields: [causeId], references: [id])
-}
 
 model Comment {
   id            Int         @id @default(autoincrement())

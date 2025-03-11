@@ -17,6 +17,11 @@ import AllEvent from "./pages/AllEvent";
 import AllHelpRequests from "./pages/AllHelpRequests";
 import ProfileLayout from "./components/profile/ProfileLayout";
 import DashBoard from "./components/profile/DashBoard";
+import MyEvents from "./components/profile/MyEvents";
+import MyHelpRequests from "./components/profile/MyHelpRequests";
+import MyTeams from "./components/profile/MyTeams";
+import Settings from "./components/profile/Settings";
+import ImpactStats from "./components/profile/ImpactStats";
 
 function App() {
   const { checkAuth, isCheckingAuth } = useAuthStore();
@@ -49,11 +54,11 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfileLayout />}>
             <Route index element={<DashBoard />} />
-            {/* <Route path="events" element={<MyEvents />} />
+            <Route path="events" element={<MyEvents />} />
             <Route path="help-requests" element={<MyHelpRequests />} />
             <Route path="teams" element={<MyTeams />} />
             <Route path="impact-stats" element={<ImpactStats />} />
-            <Route path="settings" element={<Settings />} /> */}
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 

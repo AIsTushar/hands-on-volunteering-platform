@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
+import cloudinary from "../utils/cloudinaryConfig.js";
 
 const prisma = new PrismaClient();
 
@@ -17,16 +18,8 @@ export const getProfile = async (req, res) => {
         email: true,
         profileImage: true,
         createdAt: true,
-        skills: {
-          include: {
-            skill: true,
-          },
-        },
-        causes: {
-          include: {
-            cause: true,
-          },
-        },
+        skills: true, // Now a simple array of strings
+        causes: true, // Now a simple array of strings
         events: {
           select: {
             id: true,
@@ -37,7 +30,10 @@ export const getProfile = async (req, res) => {
           },
         },
         volunteerHours: {
-          include: {
+          select: {
+            hours: true,
+            isVerified: true,
+            date: true,
             event: {
               select: {
                 title: true,
@@ -97,46 +93,59 @@ export const updateProfile = async (req, res) => {
   try {
     const { name, skills, causes } = req.body;
     const userId = req.userId;
-
     let updateData = {};
+
+    // ✅ Update Name
     if (name) updateData.name = name;
 
-    if (skills) {
-      const existingSkills = await prisma.skill.findMany({
-        where: { name: { in: skills } },
+    // ✅ FIX: Handle Image Upload using Cloudinary Upload Stream
+    if (req.file) {
+      const uploadPromise = new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "user_profiles",
+            public_id: `profile_${userId}`,
+            overwrite: true,
+            transformation: [{ width: 500, height: 500, crop: "fill" }],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        uploadStream.end(req.file.buffer);
       });
 
-      const userSkills = existingSkills.map((skill) => ({
-        userId,
-        skillId: skill.id,
-      }));
+      updateData.profileImage = await uploadPromise;
+    }
 
-      await prisma.userSkill.deleteMany({ where: { userId } });
-      await prisma.userSkill.createMany({ data: userSkills });
+    // ✅ FIX: Handle Skills & Causes Correctly
+    if (skills) {
+      try {
+        updateData.skills = JSON.parse(skills); // Parse if sent as JSON string
+      } catch (e) {
+        updateData.skills = skills.split(",").map((s) => s.trim()); // Convert comma-separated string to array
+      }
     }
 
     if (causes) {
-      const existingCauses = await prisma.cause.findMany({
-        where: { name: { in: causes } },
-      });
-
-      const userCauses = existingCauses.map((cause) => ({
-        userId,
-        causeId: cause.id,
-      }));
-
-      await prisma.userCause.deleteMany({ where: { userId } });
-      await prisma.userCause.createMany({ data: userCauses });
+      try {
+        updateData.causes = JSON.parse(causes);
+      } catch (e) {
+        updateData.causes = causes.split(",").map((c) => c.trim());
+      }
     }
 
+    // ✅ Update user in Prisma
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
     });
 
-    res.status(200).json(updatedUser);
+    res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 

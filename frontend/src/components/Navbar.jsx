@@ -41,7 +41,7 @@ function Navbar() {
     setIsOpen(!isOpen);
   };
   return (
-    <header className="font-Poppins flex h-22 items-center justify-between border-b border-gray-300 px-16 py-6 dark:border-gray-100 dark:bg-black dark:text-white">
+    <header className="font-Poppins flex h-22 items-center justify-between border-b border-gray-300 bg-white px-16 py-6 dark:border-gray-100 dark:bg-black dark:text-white">
       <Link to={"/"}>
         <img
           src={`${mode === "light" ? "/HandsOn.png" : "/HandsOn_white.png"}`}
@@ -50,7 +50,7 @@ function Navbar() {
         />
       </Link>
 
-      <nav className="hidden items-center justify-center gap-4 text-lg md:flex">
+      <nav className="hidden items-center justify-center gap-6 text-sm md:flex">
         <CustomLinks title="Home" href="/" />
         <CustomLinks title="Events" href="/events" />
         <CustomLinks title="Community" href="/help-requests" />
@@ -60,7 +60,7 @@ function Navbar() {
       <nav className="hidden items-center justify-center gap-4 text-lg md:flex">
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
-            <span className="cursor-pointer" onClick={logout}>
+            <span className="cursor-pointer text-sm" onClick={logout}>
               Logout
             </span>
             <Link to="/profile">

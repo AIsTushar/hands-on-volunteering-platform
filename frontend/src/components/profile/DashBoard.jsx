@@ -3,9 +3,9 @@ import ProfileSummary from "./ProfileSummary";
 
 function DashBoard() {
   const user = useOutletContext();
-  console.log(user);
+
   return (
-    <div>
+    <div className="container mx-auto px-16 pb-16">
       {/* Welcome Message */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Welcome back, {user.name}!</h1>

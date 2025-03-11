@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import EventCard from "../cards/EventCard";
 
 function UpcommingEvent({ events }) {
-  console.log(events);
   return (
     <div className="container mx-auto px-16">
       <div className="flex items-center justify-between py-8">
