@@ -413,9 +413,12 @@ function AllEvent() {
 
           {!loading && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {events.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
+              {events.map(
+                (event) => (
+                  console.log(event),
+                  (<EventCard key={event.id} event={event} />)
+                ),
+              )}
             </div>
           )}
         </div>

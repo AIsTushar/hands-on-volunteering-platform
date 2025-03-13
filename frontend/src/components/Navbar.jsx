@@ -74,8 +74,8 @@ function Navbar() {
           </div>
         ) : (
           <>
-            <CustomLinks title="Login" href="/login" />
-            <CustomLinks title="SignUp" href="/signup" />
+            <CustomLinks className="text-sm" title="Login" href="/login" />
+            <CustomLinks className="text-sm" title="SignUp" href="/signup" />
           </>
         )}
 

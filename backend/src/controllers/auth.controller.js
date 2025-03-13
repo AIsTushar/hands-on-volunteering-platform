@@ -81,7 +81,6 @@ export const checkAuth = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, name: true, email: true },
     });
 
     if (!user) {

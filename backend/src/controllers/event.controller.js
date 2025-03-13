@@ -1,43 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-
 const prisma = new PrismaClient();
-// Get all events with filters
-// export const getEvents = async (req, res) => {
-//   const { category, location } = req.query;
-//   try {
-//     const events = await prisma.event.findMany({
-//       where: {
-//         ...(category && { category }),
-//         ...(location && { location }),
-//       },
-//       include: {
-//         _count: { select: { participants: true } },
-//       },
-//     });
+import cloudinary from "../utils/cloudinaryConfig.js";
 
-//     // Add availability information for each event
-//     const eventsWithAvailability = events.map((event) => {
-//       const participantsJoined = event._count.participants;
-//       const spacesLeft = event.maxParticipants - participantsJoined;
-//       const isAvailable =
-//         spacesLeft > 0 && new Date(event.dateTime) > new Date();
-
-//       return {
-//         ...event,
-//         participantsJoined,
-//         spacesLeft,
-//         isAvailable,
-//       };
-//     });
-
-//     res.json(eventsWithAvailability);
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ success: false, message: "Error fetching events", error });
-//   }
-// };
-
+// Get All Events
 export const getEvents = async (req, res) => {
   const {
     category,
@@ -95,6 +60,11 @@ export const getEvents = async (req, res) => {
       where,
       include: {
         _count: { select: { participants: true } },
+        category: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: {
         [sortBy]: sortOrder,
@@ -142,51 +112,88 @@ export const getEvents = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching events:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching events",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching events",
+      error: error.message,
+    });
   }
 };
 
 // Create event (protected)
 export const createEvent = async (req, res) => {
-  const {
-    title,
-    description,
-    dateTime,
-    location,
-    category,
-    eventImage,
-    maxParticipants,
-  } = req.body;
-  const userId = req.userId;
   try {
+    const {
+      title,
+      description,
+      dateTime,
+      location,
+      maxParticipants,
+      categoryId,
+    } = req.body;
+
+    // Event data object
+    const eventData = {
+      title,
+      description,
+      dateTime: new Date(dateTime),
+      location,
+      maxParticipants: parseInt(maxParticipants) || 30,
+      categoryId: parseInt(categoryId),
+      creatorId: req.userId,
+    };
+
+    // Handle image upload using Cloudinary if present
+    if (req.file) {
+      const uploadPromise = new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "event_images",
+            public_id: `event_${Date.now()}`,
+            transformation: [{ width: 800, height: 600, crop: "fill" }],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+
+      eventData.eventImage = await uploadPromise;
+    }
+
+    // Create event in database
     const event = await prisma.event.create({
-      data: {
-        title,
-        description,
-        dateTime: new Date(dateTime),
-        location,
-        category,
-        eventImage,
-        maxParticipants: maxParticipants || 30, // Use provided value or default to 30
-        creatorId: userId,
+      data: eventData,
+      include: {
+        category: true,
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
-    res
-      .status(201)
-      .json({ success: true, message: "Event created successfully", event });
+
+    res.status(201).json({
+      success: true,
+      data: event,
+      message: "Event created successfully",
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Error creating event", error });
+    console.error("Error creating event:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create event",
+      error: error.message,
+    });
   }
 };
 
+// Get Event
 export const getEvent = async (req, res) => {
   const { id } = req.params;
   try {
@@ -194,6 +201,11 @@ export const getEvent = async (req, res) => {
       where: { id: parseInt(id) },
       include: {
         participants: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
         _count: { select: { participants: true } },
         creator: {
           select: {
@@ -225,6 +237,195 @@ export const getEvent = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Error fetching event", error });
+  }
+};
+
+// Update Event
+export const updateEvent = async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    const {
+      title,
+      description,
+      dateTime,
+      location,
+      maxParticipants,
+      categoryId,
+    } = req.body;
+
+    // Check if event exists and user is the creator
+    const existingEvent = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { creatorId: true },
+    });
+
+    if (!existingEvent) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    // Check if user is the creator
+    if (existingEvent.creatorId !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this event",
+      });
+    }
+
+    // Prepare update data
+    const updateData = {};
+
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (dateTime) updateData.dateTime = new Date(dateTime);
+    if (location) updateData.location = location;
+    if (maxParticipants) updateData.maxParticipants = parseInt(maxParticipants);
+    if (categoryId) updateData.categoryId = parseInt(categoryId);
+
+    // Handle image upload if present
+    if (req.file) {
+      const uploadPromise = new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "event_images",
+            public_id: `event_${eventId}_${Date.now()}`,
+            transformation: [{ width: 800, height: 600, crop: "fill" }],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+
+      updateData.eventImage = await uploadPromise;
+    }
+
+    // Update the event
+    const updatedEvent = await prisma.event.update({
+      where: { id: eventId },
+      data: updateData,
+      include: {
+        category: true,
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedEvent,
+      message: "Event updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating event:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update event",
+      error: error.message,
+    });
+  }
+};
+
+// Delete an event
+export const deleteEvent = async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+
+    // Check if event exists and user is the creator
+    const existingEvent = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { creatorId: true, eventImage: true },
+    });
+
+    if (!existingEvent) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    // Check if user is the creator
+    if (existingEvent.creatorId !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this event",
+      });
+    }
+
+    // Delete the event image from Cloudinary if exists
+    if (
+      existingEvent.eventImage &&
+      existingEvent.eventImage.includes("cloudinary")
+    ) {
+      try {
+        // Extract public_id from the URL
+        const publicId = existingEvent.eventImage
+          .split("/")
+          .pop()
+          .split(".")[0];
+        await cloudinary.uploader.destroy(`event_images/${publicId}`);
+      } catch (cloudinaryError) {
+        console.error("Error deleting image from Cloudinary:", cloudinaryError);
+        // Continue with deletion even if image deletion fails
+      }
+    }
+
+    // Delete the event
+    await prisma.event.delete({
+      where: { id: eventId },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Event deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete event",
+      error: error.message,
+    });
+  }
+};
+
+// Get events created by the current user
+export const getMyEvents = async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        creatorId: req.userId,
+      },
+      include: {
+        category: true,
+        _count: {
+          select: { participants: true },
+        },
+      },
+      orderBy: {
+        dateTime: "asc",
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: events,
+    });
+  } catch (error) {
+    console.error("Error fetching user events:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user events",
+      error: error.message,
+    });
   }
 };
 

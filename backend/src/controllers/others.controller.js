@@ -10,11 +10,23 @@ export const getHomePageData = async (req, res) => {
     // Get latest 6 events
     const events = await prisma.event.findMany({
       take: 6,
+
       orderBy: {
         dateTime: "desc",
       },
       include: {
+        participants: true,
+        creator: {
+          select: {
+            id: true,
+          },
+        },
         _count: { select: { participants: true } },
+        category: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 

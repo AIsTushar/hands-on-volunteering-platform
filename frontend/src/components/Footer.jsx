@@ -1,23 +1,23 @@
 function Footer() {
   return (
-    <footer class="mt-24 flex flex-col justify-center space-y-10 border-t border-gray-300 py-24 dark:border-gray-700 dark:bg-black dark:text-white">
+    <footer class="flex flex-col justify-center space-y-10 border-t border-gray-300 bg-black py-24 dark:border-gray-700 dark:text-white">
       <nav class="flex flex-wrap justify-center gap-6 font-medium text-gray-500">
-        <a class="hover:text-gray-900 dark:hover:text-white" href="#">
+        <a class="hover:text-white dark:hover:text-white" href="#">
           Home
         </a>
-        <a class="hover:text-gray-900 dark:hover:text-white" href="#">
+        <a class="hover:text-white" href="#">
           Event
         </a>
-        <a class="hover:text-gray-900 dark:hover:text-white" href="#">
+        <a class="hover:text-white" href="#">
           About
         </a>
-        <a class="hover:text-gray-900 dark:hover:text-white" href="#">
+        <a class="hover:text-white" href="#">
           Commuity
         </a>
-        <a class="hover:text-gray-900 dark:hover:text-white" href="#">
+        <a class="hover:text-white" href="#">
           Teams
         </a>
-        <a class="hover:text-gray-900 dark:hover:text-white" href="#">
+        <a class="hover:text-white" href="#">
           Contact
         </a>
       </nav>

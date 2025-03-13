@@ -6,38 +6,69 @@ import {
   Users,
   ArrowLeft,
   Share2,
-  Heart,
   Award,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
 
 function EventDetails() {
   const [event, setEvent] = useState({});
   const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated } = useAuthStore();
   const id = useParams().id;
+  const isParticipant = event.participants?.some(
+    (participant) => participant.id === user?.id,
+  );
+
+  // Fetch event data
+  const fetchEvents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:5000/api/event/${id}`);
+      setEvent(response.data);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/event/${id}`,
-        );
-
-        setEvent(response.data);
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        setLoading(false);
-      }
-    };
-
     fetchEvents();
-  }, [id]);
+  }, [fetchEvents]);
+
+  console.log(event);
+
+  const handleJoinEvent = async () => {
+    try {
+      await axios.post(`http://localhost:5000/api/event/${id}/join`, null, {
+        withCredentials: true,
+      });
+      fetchEvents();
+      toast.success("Joined event successfully");
+    } catch (error) {
+      console.error("Error joining event:", error);
+
+      toast.error("Error joining event");
+    }
+  };
+
+  const handleLeaveEvent = async () => {
+    try {
+      await axios.post(`http://localhost:5000/api/event/${id}/leave`, null, {
+        withCredentials: true,
+      });
+      fetchEvents();
+      toast.success("Left event successfully");
+    } catch (error) {
+      console.error("Error leaving event:", error);
+      toast.error("Error leaving event");
+    }
+  };
 
   // Format date and time
   const formatDate = (dateString) => {
@@ -107,7 +138,7 @@ function EventDetails() {
         <div className="mb-8">
           <div className="mb-4 flex items-center">
             <span className="rounded-full bg-green-100 px-4 py-1 text-sm font-medium text-green-800">
-              {event.category}
+              {event.category.name}
             </span>
           </div>
           <h1 className="mb-4 text-3xl font-bold text-gray-800 dark:text-gray-200">
@@ -132,7 +163,7 @@ function EventDetails() {
         {/* Event Image */}
         <div className="mb-8">
           <img
-            src="https://i.pinimg.com/736x/4f/0c/cd/4f0ccdc6cfc43be89ceed82cead2775d.jpg"
+            src={event.eventImage}
             alt="Waste Management Seminar"
             className="h-64 w-full rounded-lg object-cover shadow-md"
           />
@@ -231,10 +262,24 @@ function EventDetails() {
               </div>
 
               {/* CTA Button */}
-              {event.isAvailable ? (
-                <button className="cursor-pointer rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95 dark:border-white">
-                  Join Us
-                </button>
+              {!isAuthenticated ? (
+                <p>You need to be logged in to join this event</p>
+              ) : event.isAvailable && event.creator.id !== user?.id ? (
+                isParticipant ? (
+                  <button
+                    onClick={handleLeaveEvent}
+                    className="cursor-pointer rounded-lg border bg-red-600 px-4 py-2 text-white uppercase transition-all duration-300 hover:border-red-600 hover:bg-white hover:text-red-600 active:scale-95 dark:border-white"
+                  >
+                    Leave Event
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleJoinEvent}
+                    className="cursor-pointer rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95 dark:border-white"
+                  >
+                    Join Us
+                  </button>
+                )
               ) : null}
             </div>
           </div>

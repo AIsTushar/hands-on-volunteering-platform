@@ -22,6 +22,10 @@ import MyHelpRequests from "./components/profile/MyHelpRequests";
 import MyTeams from "./components/profile/MyTeams";
 import Settings from "./components/profile/Settings";
 import ImpactStats from "./components/profile/ImpactStats";
+import CreateNewEvent from "./components/profile/CreateNewEvent";
+import EditEvent from "./components/profile/EditEvent";
+import CreateNewRequest from "./components/profile/CreateNewRequest";
+import EditRequest from "./components/profile/EditRequest";
 
 function App() {
   const { checkAuth, isCheckingAuth } = useAuthStore();
@@ -55,7 +59,11 @@ function App() {
           <Route path="/profile" element={<ProfileLayout />}>
             <Route index element={<DashBoard />} />
             <Route path="events" element={<MyEvents />} />
+            <Route path="events/new" element={<CreateNewEvent />} />
+            <Route path="events/edit-event/:id" element={<EditEvent />} />
             <Route path="help-requests" element={<MyHelpRequests />} />
+            <Route path="help-requests/new" element={<CreateNewRequest />} />
+            <Route path="help-requests/edit/:id" element={<EditRequest />} />
             <Route path="teams" element={<MyTeams />} />
             <Route path="impact-stats" element={<ImpactStats />} />
             <Route path="settings" element={<Settings />} />

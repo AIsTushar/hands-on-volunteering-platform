@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 
 function Hero() {
   return (
-    <section className="flex h-[80vh] w-full items-center justify-center overflow-hidden dark:bg-black dark:text-white">
+    <section className="flex h-[80vh] w-full items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-950 dark:text-white">
       {/* Hero Content */}
+
       <div className="flex max-w-5xl flex-col gap-6 px-6 text-center md:px-12">
         <h1 className="mb-4 text-4xl font-bold md:text-6xl">
           Make an Impact. One Volunteer at a Time.

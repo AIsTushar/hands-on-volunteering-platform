@@ -18,8 +18,8 @@ export const getProfile = async (req, res) => {
         email: true,
         profileImage: true,
         createdAt: true,
-        skills: true, // Now a simple array of strings
-        causes: true, // Now a simple array of strings
+        skills: true,
+        causes: true,
         events: {
           select: {
             id: true,

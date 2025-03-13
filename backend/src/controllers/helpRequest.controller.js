@@ -476,3 +476,47 @@ export const getHelpRequestHelpers = async (req, res) => {
     });
   }
 };
+
+// Get all help requests created by a user
+export const getHelpRequestsByUser = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const helpRequests = await prisma.helpRequest.findMany({
+      where: { userId },
+      include: {
+        helpers: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                profileImage: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        _count: {
+          select: {
+            helpers: true,
+            comments: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      helpRequests,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching help requests",
+      error,
+    });
+  }
+};

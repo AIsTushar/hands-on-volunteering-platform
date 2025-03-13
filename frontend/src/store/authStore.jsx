@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 axios.defaults.withCredentials = true;
 
@@ -27,10 +28,15 @@ export const useAuthStore = create((set) => ({
         isLoading: false,
         isAuthenticated: true,
       });
+      toast.success("Account created successfully", { duration: 5000 });
     } catch (error) {
       set({
         isLoading: false,
         error: error.response?.data?.message || "Error while signing up!!",
+      });
+
+      toast.error("Error while signing up!! Please try again", {
+        duration: 5000,
       });
 
       throw error;
@@ -57,6 +63,9 @@ export const useAuthStore = create((set) => ({
         isLoading: false,
         error: error.response?.data?.message || "Error while logging in!!",
       });
+      toast.error(error.response?.data?.message || "Error while logging in!!", {
+        duration: 5000,
+      });
       throw error;
     }
   },
@@ -82,6 +91,7 @@ export const useAuthStore = create((set) => ({
 
     try {
       const response = await axios.get(`${API_URL}/check-auth`);
+
       set({
         isAuthenticated: true,
         user: response.data.user,
@@ -89,6 +99,25 @@ export const useAuthStore = create((set) => ({
       });
     } catch (error) {
       set({ isCheckingAuth: false });
+      throw error;
+    }
+  },
+
+  getUser: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/profile`);
+      set({
+        isAuthenticated: true,
+        user: response.data.user,
+        error: null,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Error while logging in!!",
+      });
       throw error;
     }
   },

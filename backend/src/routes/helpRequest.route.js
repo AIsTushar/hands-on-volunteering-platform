@@ -8,6 +8,7 @@ import {
   getHelpRequest,
   getHelpRequestHelpers,
   getHelpRequests,
+  getHelpRequestsByUser,
   offerHelp,
   updateHelpRequest,
   withdrawHelp,
@@ -20,6 +21,7 @@ router.post("/", verifyToken, createHelpRequest);
 router.get("/:id", getHelpRequest);
 router.put("/:id", verifyToken, updateHelpRequest);
 router.delete("/:id", verifyToken, deleteHelpRequest);
+router.get("/user/created", verifyToken, getHelpRequestsByUser);
 
 // Helper routes
 router.post("/:id/offer-help", verifyToken, offerHelp);

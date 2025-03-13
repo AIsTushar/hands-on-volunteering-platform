@@ -59,4 +59,25 @@ router.get("/causes", async (req, res) => {
   }
 });
 
+// Get All Categories
+router.get("/allCategories", async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { name: "asc" },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories",
+      error: error.message,
+    });
+  }
+});
+
 export default router;

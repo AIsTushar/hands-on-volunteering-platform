@@ -11,21 +11,21 @@ function Home() {
   const [helpRequests, setHelpRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("http://localhost:5000/home");
+
+      setEvents(response.data.data.latestEvents);
+      setHelpRequests(response.data.data.latestRequests);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get("http://localhost:5000/home");
-
-        setEvents(response.data.data.latestEvents);
-        setHelpRequests(response.data.data.latestRequests);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        setLoading(false);
-      }
-    };
-
     fetchEvents();
   }, []);
 
@@ -36,7 +36,7 @@ function Home() {
   return (
     <div className="dark:bg-black dark:text-white">
       <Hero />
-      <UpcommingEvent events={events} />
+      <UpcommingEvent events={events} onEventChange={fetchEvents} />
       <CommunityHelpRequests helpRequests={helpRequests} />
     </div>
   );

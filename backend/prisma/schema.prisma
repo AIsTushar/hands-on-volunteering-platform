@@ -51,21 +51,28 @@ model Team {
 }
 
 model Event {
-  id             Int             @id @default(autoincrement())
-  title          String
-  description    String
-  eventImage     String?
-  dateTime       DateTime
-  location       String
-  category       String
-  maxParticipants Int            @default(30)            
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  creatorId      Int
-  creator        User            @relation("EventCreator", fields: [creatorId], references: [id])
-  participants   User[]          @relation("EventParticipants")
-  teams          Team[]          @relation("TeamEvents")
-  volunteerHours VolunteerHour[] 
+  id              Int             @id @default(autoincrement())
+  title           String
+  description     String
+  eventImage      String?
+  dateTime        DateTime
+  location        String
+  maxParticipants Int             @default(30)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  creatorId       Int
+  creator         User            @relation("EventCreator", fields: [creatorId], references: [id])
+  participants    User[]          @relation("EventParticipants")
+  teams           Team[]          @relation("TeamEvents")
+  volunteerHours  VolunteerHour[]
+  categoryId      Int
+  category        Category        @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  events Event[]
 }
 
 model VolunteerHour {
