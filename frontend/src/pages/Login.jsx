@@ -69,7 +69,7 @@ function Login() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full rounded-md border border-gray-300 bg-white py-2 pr-3 pl-10 leading-5 placeholder-gray-500 focus:border-stone-500 focus:ring-stone-500 focus:outline-none sm:text-sm dark:bg-black"
+                  className="block w-full rounded-md border border-gray-300 bg-white py-2 pr-3 pl-10 leading-5 placeholder-gray-500 focus:border-stone-500 focus:ring-stone-500 focus:outline-none sm:text-sm dark:bg-black dark:text-white"
                   placeholder="your@email.com"
                 />
               </div>
@@ -94,7 +94,7 @@ function Login() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full rounded-md border border-gray-300 bg-white py-2 pr-10 pl-10 leading-5 placeholder-gray-500 focus:border-stone-500 focus:ring-stone-500 focus:outline-none sm:text-sm dark:bg-black"
+                  className="block w-full rounded-md border border-gray-300 bg-white py-2 pr-10 pl-10 leading-5 placeholder-gray-500 focus:border-stone-500 focus:ring-stone-500 focus:outline-none sm:text-sm dark:bg-black dark:text-white"
                   placeholder="••••••"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">

@@ -14,31 +14,68 @@ import { Link, useParams } from "react-router-dom";
 import Loading from "../components/Loading";
 import axios from "axios";
 import { getUrgencyColor } from "../utils/Helper";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
 
 function HelpRequestDetails() {
   const [helpRequest, setHelpRequest] = useState({});
   const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated } = useAuthStore();
   const id = useParams().id;
 
+  const isHelper = helpRequest.helpers.some(
+    (helper) => helper.user.id === user.id,
+  );
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/help-requests/${id}`,
+      );
+      setHelpRequest(response.data);
+    } catch (error) {
+      console.error("Error fetching help request:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/help-requests/${id}`,
-        );
-
-        setHelpRequest(response.data);
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        setLoading(false);
-      }
-    };
-
     fetchEvents();
   }, [id]);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.post(
+        `http://localhost:5000/api/help-requests/${id}/comments`,
+        { content: e.target.content.value },
+        { withCredentials: true },
+      );
+      fetchEvents();
+      e.target.comment.value = "";
+      toast.success("Comment submitted successfully");
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+    }
+  };
+
+  const handleOfferHelp = async () => {
+    try {
+      await axios.post(
+        `http://localhost:5000/api/help-requests/${id}/offer-help`,
+        null,
+        { withCredentials: true },
+      );
+    } catch (error) {
+      console.error("Error offering help:", error);
+    } finally {
+      fetchEvents();
+      toast.success("Offered help successfully");
+    }
+  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -67,6 +104,8 @@ function HelpRequestDetails() {
   if (loading) {
     return <Loading />;
   }
+
+  console.log(helpRequest);
 
   return (
     <div className="min-h-screen w-full pt-16 dark:bg-black">
@@ -139,17 +178,17 @@ function HelpRequestDetails() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {helpRequest.comments.map((comment) => (
                     <div key={comment.id} className="flex items-start">
                       <img
-                        src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                        src={comment.user.profileImage || "default.jpg"}
                         alt="User"
                         className="mr-4 h-10 w-10 rounded-full"
                       />
-                      <div>
-                        <div className="flex items-center justify-between gap-6">
-                          <p className="mb-2 text-gray-800 dark:text-gray-300">
+                      <div className="w-full">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
                             {comment.user.name}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -168,13 +207,14 @@ function HelpRequestDetails() {
 
               {/* Comment Form */}
               <div className="mt-6 border-t border-gray-600 pt-6 dark:border-gray-600">
-                <form className="flex flex-col">
+                <form className="flex flex-col" onSubmit={handleCommentSubmit}>
                   <textarea
-                    className="min-h-32 w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:ring-blue-500"
+                    className="min-h-32 w-full rounded-lg border border-gray-300 p-3 focus:border-gray-500 focus:ring-gray-500 dark:text-gray-400"
                     placeholder="Write a comment..."
+                    name="content"
                   ></textarea>
                   <button
-                    className="mt-3 cursor-pointer self-end rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                    className="mt-3 cursor-pointer self-end rounded-lg bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
                     type="submit"
                   >
                     Post Comment
@@ -226,10 +266,19 @@ function HelpRequestDetails() {
               </div>
 
               {/* Offer Help Button */}
-              <button className="flex w-full cursor-pointer items-center justify-center rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95 dark:border-white">
-                <UserPlus className="mr-2 h-5 w-5" />
-                Offer Help
-              </button>
+              {!isAuthenticated ? (
+                <span className="mb-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Login to offer help
+                </span>
+              ) : user.id === helpRequest.user.id || isHelper ? null : (
+                <button
+                  onClick={handleOfferHelp}
+                  className="flex w-full cursor-pointer items-center justify-center rounded-lg border bg-black px-4 py-2 text-white uppercase transition-all duration-300 hover:border-black hover:bg-white hover:text-black active:scale-95 dark:border-white"
+                >
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Offer Help
+                </button>
+              )}
 
               {/* Additional Actions */}
               <div className="mt-4 flex justify-between">

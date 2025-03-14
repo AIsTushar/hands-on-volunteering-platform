@@ -46,16 +46,17 @@ function Settings() {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log(formData);
+
       toast.success(
         "Profile updated successfully || Image may take a few seconds to update",
       );
-      getUser();
       setIsLoading(false);
     } catch (error) {
       console.log(error);
       toast.error(error.message);
+    } finally {
       setIsLoading(false);
+      getUser();
     }
   };
 

@@ -1,314 +1,230 @@
-import { PrismaClient } from "@prisma/client";
+# HandsOn – A Community-Driven Social Volunteering Platform
 
-const prisma = new PrismaClient();
+## Project Overview
 
-export const getEvents = async (req, res) => {
-const {
-category,
-location,
-search,
-date,
-sortBy = "dateTime",
-sortOrder = "desc",
-page = 1,
-limit = 12,
-} = req.query;
+HandsOn is a community-driven platform designed to connect individuals with social impact opportunities. It enables users to discover and join volunteer events, post requests for help and track their contributions. The platform promotes social responsibility, community collaboration, and engagement in volunteer work.
 
-try {
-// Calculate pagination values
-const skip = (parseInt(page) - 1) \* parseInt(limit);
-const take = parseInt(limit);
+---
 
-    // Build the where clause for filtering
-    const where = {
-      // Category filter - handle multiple categories
-      ...(category && {
-        category: Array.isArray(category) ? { in: category } : category,
-      }),
+## Technologies Used
 
-      // Location filter - case-insensitive partial match
-      ...(location && {
-        location: {
-          contains: location,
-          mode: "insensitive",
-        },
-      }),
+### Backend:
 
-      // Search functionality - search in title and description
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { description: { contains: search, mode: "insensitive" } },
-        ],
-      }),
+- **Node.js** with **Express.js**
+- **Prisma** (ORM for PostgreSQL)
+- **bcryptjs** (Password hashing)
+- **jsonwebtoken** (JWT Authentication)
+- **pg** (PostgreSQL client)
+- **multer** (File uploads)
+- **cloudinary** (Image storage)
 
-      // Date filter - filter events on specified date
-      ...(date && {
-        dateTime: {
-          gte: new Date(`${date}T00:00:00`),
-          lt: new Date(`${date}T23:59:59`),
-        },
-      }),
-    };
+### Frontend:
 
-    // Get count for pagination
-    const totalCount = await prisma.event.count({ where });
+- **React.js**
+- **Vite** (Build tool)
+- **Tailwind CSS** (Styling)
+- **Axios** (HTTP requests)
+- **zustand** (State management)
+- **react-router-dom** (Routing)
 
-    // Get events with filtering, sorting and pagination
-    const events = await prisma.event.findMany({
-      where,
-      include: {
-        _count: { select: { participants: true } },
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
-      skip,
-      take,
-    });
+## Features
 
-    // Add availability information for each event
-    const eventsWithAvailability = events.map((event) => {
-      const participantsJoined = event._count.participants;
-      const spacesLeft = event.maxParticipants - participantsJoined;
-      const isAvailable =
-        spacesLeft > 0 && new Date(event.dateTime) > new Date();
+- **User Registration & Profile Management**:
 
-      // Format dateTime for easier frontend handling
-      const formattedDateTime = new Date(event.dateTime);
+  - Users can sign up, log in, and manage their profiles.
+  - Profiles include personal information, skills, and causes they support.
+  - Users can edit their profiles and track their volunteer history.
 
-      return {
-        ...event,
-        participantsJoined,
-        spacesLeft,
-        isAvailable,
-        formattedDate: formattedDateTime.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        formattedTime: formattedDateTime.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
-    });
+- **Discover & Join Volunteer Events**:
 
-    // Return pagination metadata along with results
-    res.json({
-      events: eventsWithAvailability,
-      pagination: {
-        total: totalCount,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalCount / parseInt(limit)),
-      },
-    });
+  - Users can create, view, and register for volunteer events.
+  - Events can be filtered by category, location, and availability.
 
-} catch (error) {
-console.error("Error fetching events:", error);
-res.status(500).json({
-success: false,
-message: "Error fetching events",
-error: error.message,
-});
-}
-};
+- **Community Help Requests**:
 
-// Create event (protected)
-export const createEvent = async (req, res) => {
-const {
-title,
-description,
-dateTime,
-location,
-category,
-eventImage,
-maxParticipants,
-} = req.body;
-const userId = req.userId;
-try {
-const event = await prisma.event.create({
-data: {
-title,
-description,
-dateTime: new Date(dateTime),
-location,
-category,
-eventImage,
-maxParticipants: maxParticipants || 30, // Use provided value or default to 30
-creatorId: userId,
-},
-});
-res
-.status(201)
-.json({ success: true, message: "Event created successfully", event });
-} catch (error) {
-res
-.status(500)
-.json({ success: false, message: "Error creating event", error });
-}
-};
+  - Users can post and respond to help requests within the community.
+  - Requests are categorized by urgency level for prioritization.
 
-export const getEvent = async (req, res) => {
-const { id } = req.params;
-try {
-const event = await prisma.event.findUnique({
-where: { id: parseInt(id) },
-include: {
-participants: true,
-\_count: { select: { participants: true } },
-creator: {
-select: {
-id: true,
-name: true,
-email: true,
-},
-},
-},
-});
+- **Dark Mode Support **:
 
-    if (!event)
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found" });
+  - Users can toggle between light and dark modes for a personalized experience.
 
-    // Add availability information
-    const participantsJoined = event._count.participants;
-    const spacesLeft = event.maxParticipants - participantsJoined;
-    const isAvailable = spacesLeft > 0 && new Date(event.dateTime) > new Date();
+## Database Schema
 
-    res.json({
-      ...event,
-      participantsJoined,
-      spacesLeft,
-      isAvailable,
-    });
+A visual representation of the database structure
 
-} catch (error) {
-res
-.status(500)
-.json({ success: false, message: "Error fetching event", error });
-}
-};
+![Database Schema](./frontend/public/SchemaDiagram.png)
 
-// Join event (protected)
-export const joinEvent = async (req, res) => {
-const { id } = req.params;
-const userId = req.userId;
+## Setup Instructions
 
-try {
-// First check if the event has space available
-const event = await prisma.event.findUnique({
-where: { id: parseInt(id) },
-include: {
-\_count: { select: { participants: true } },
-},
-});
+To set up and run the project locally, follow these steps for both the backend and frontend:
 
-    if (!event) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found" });
-    }
+### 1. Clone the repository
 
-    // Check if event date has passed
-    if (new Date(event.dateTime) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot join past events",
-      });
-    }
+First, clone the repository to your local machine:
 
-    // Check if maximum participant limit is reached
-    if (event._count.participants >= event.maxParticipants) {
-      return res.status(400).json({
-        success: false,
-        message: "Event has reached maximum participants limit",
-      });
-    }
+```bash
+git clone https://github.com/AIsTushar/hands-on-volunteering-platform
+cd hands-on-volunteering-platform
 
-    // Check if user is already a participant
-    const userParticipation = await prisma.event.findFirst({
-      where: {
-        id: parseInt(id),
-        participants: {
-          some: {
-            id: userId,
-          },
-        },
-      },
-    });
+```
 
-    if (userParticipation) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already joined this event",
-      });
-    }
+### 2. Set up the Backend
 
-    // If all checks pass, join the event
-    await prisma.event.update({
-      where: { id: parseInt(id) },
-      data: { participants: { connect: { id: userId } } },
-    });
+Navigate to the backend folder:
 
-    res.json({ success: true, message: "Successfully joined the event" });
+```bash
+cd backend
+```
 
-} catch (error) {
-res
-.status(500)
-.json({ success: false, message: "Error joining event", error });
-}
-};
+Install the backend dependencies:
 
-// Leave event (protected)
-export const leaveEvent = async (req, res) => {
-const { id } = req.params;
-const userId = req.userId;
+```bash
+npm install
+```
 
-try {
-// Check if event exists
-const event = await prisma.event.findUnique({
-where: { id: parseInt(id) },
-});
+Create a .env file in the backend folder and add the following environment variables:
 
-    if (!event) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found" });
-    }
+```bash
+DATABASE_URL = postgresql://postgres:root@localhost:5432/hands_on_db
+PORT = 5000
+JWT_SECRET = mysecretkey
+NODE_ENV = development
+CLIENT_URL = http://localhost:5173
 
-    // Check if user is a participant
-    const userParticipation = await prisma.event.findFirst({
-      where: {
-        id: parseInt(id),
-        participants: {
-          some: {
-            id: userId,
-          },
-        },
-      },
-    });
+CLOUDINARY_CLOUD_NAME = <your-cloud-name>
+CLOUDINARY_API_KEY = <your-api-key>
+CLOUDINARY_API_SECRET = <your-api-secret>
 
-    if (!userParticipation) {
-      return res.status(400).json({
-        success: false,
-        message: "You are not a participant of this event",
-      });
-    }
+```
 
-    // Remove the user from participants
-    await prisma.event.update({
-      where: { id: parseInt(id) },
-      data: { participants: { disconnect: { id: userId } } },
-    });
+Run the backend server:
 
-    res.json({ success: true, message: "Successfully left the event" });
+```bash
+npm run dev
+```
 
-} catch (error) {
-res
-.status(500)
-.json({ success: false, message: "Error leaving event", error });
-}
-};
+### 3. Set up the Frontend
+
+Navigate to the frontend folder:
+
+```bash
+cd frontend
+```
+
+Install the frontend dependencies:
+
+```bash
+npm install
+```
+
+Run the frontend development server:
+
+```bash
+npm run dev
+```
+
+Ensure that you have PostgreSQL installed and a database named hands_on_db created.
+
+## 4. API Documentation
+
+This project exposes a set of RESTful APIs that handle authentication, user profiles, events, help requests, and comments. The authentication for protected routes is managed through cookies (not bearer tokens).
+
+### Authentication APIs
+
+- **POST /api/auth/signup**: Registers a new user.
+  - Request body:
+    - `name`: User's name
+    - `email`: User's email
+    - `password`: User's password
+- **POST /api/auth/login**: Logs in the user and sets authentication cookies.
+  - Request body:
+    - `email`: User's email
+    - `password`: User's password
+- **POST /api/auth/logout**: Logs out the user and clears authentication cookies.
+- **GET /api/auth/check-auth**: Verifies if the user is authenticated via cookies.
+- **GET /api/auth/me**: Returns the authenticated user's profile data.
+
+### Profile APIs
+
+- **GET /api/profile**: Retrieves the authenticated user's profile (protected).
+- **PUT /api/profile**: Updates the authenticated user's profile (protected).
+  - Form-data: Upload a profile image along with other profile data.
+- **PUT /api/profile/ChangePassword**: Allows the authenticated user to change their password (protected).
+  - Request body:
+    - `oldPassword`: Current password
+    - `newPassword`: New password
+- **DELETE /api/profile**: Deletes the authenticated user's account (protected).
+
+### Event APIs
+
+- **GET /api/event**: Fetches a list of events (public).
+- **GET /api/event/:id**: Fetches a specific event by ID (public).
+- **POST /api/event**: Creates a new event (protected).
+  - Request body:
+    - `title`: Event title
+    - `description`: Event description
+    - `eventImage`: Image for the event (multipart upload)
+    - `etc`
+- **PUT /api/event/:id**: Updates an event by ID (protected).
+  - Request body:
+    - `title`: Updated event title
+    - `description`: Updated event description
+    - `eventImage`: Updated event image (multipart upload)
+    - `etc`
+- **DELETE /api/event/:id**: Deletes an event by ID (protected).
+- **GET /api/event/user/created**: Retrieves events created by the authenticated user (protected).
+- **POST /api/event/:id/join**: Allows a user to join an event (protected).
+- **POST /api/event/:id/leave**: Allows a user to leave an event (protected).
+
+### Help Request APIs
+
+- **GET /api/help-requests**: Fetches a list of help requests (public).
+- **POST /api/help-requests**: Creates a new help request (protected).
+  - Request body:
+    - `title`: Help request title
+    - `description`: Help request description
+    - `urgencyLevel`: Urgency level of the help request
+    - `etc`
+- **GET /api/help-requests/:id**: Fetches a specific help request by ID (public).
+- **PUT /api/help-requests/:id**: Updates a help request by ID (protected).
+- **DELETE /api/help-requests/:id**: Deletes a help request by ID (protected).
+- **GET /api/help-requests/user/created**: Retrieves help requests created by the authenticated user (protected).
+
+### Helper APIs for Help Requests
+
+- **POST /api/help-requests/:id/offer-help**: Allows a user to offer help for a specific help request (protected).
+- **DELETE /api/help-requests/:id/withdraw-help**: Allows a user to withdraw their offer of help (protected).
+- **GET /api/help-requests/:id/helpers**: Fetches a list of helpers for a specific help request (protected).
+
+### Comment APIs
+
+- **POST /api/help-requests/:id/comments**: Adds a comment to a specific help request (protected).
+  - Request body:
+    - `content`: Comment content
+- **DELETE /api/help-requests/:id/comments/:commentId**: Deletes a comment from a help request (protected).
+
+### Authentication Middleware
+
+The application uses **cookie-parser** middleware for authentication. After logging in, a session cookie is set to authenticate further requests. For all protected routes, the cookie is checked to ensure the user is authenticated.
+
+To access protected routes, users must have a valid session cookie. The backend will validate the cookie and allow or deny access based on the session's validity.
+
+---
+
+### Notes on Authentication
+
+- **Login**: A user can authenticate via the `/api/auth/login` endpoint. Upon successful login, a session cookie is created and sent to the client.
+- **Logout**: Use `/api/auth/logout` to destroy the session and remove the authentication cookies.
+
+---
+
+## Postman Collection
+
+[Download Postman Collection](./postman_collection.json)
+
+volunteering-platform.postman_collection.json
+
+## Demo Screenshots
+
+![volunteering-platform](./frontend/public/homePage.png)

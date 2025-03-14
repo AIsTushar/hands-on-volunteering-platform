@@ -16,15 +16,31 @@ export const getEvents = async (req, res) => {
   } = req.query;
 
   try {
+    // Safe parsing with fallbacks
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 12;
+
     // Calculate pagination values
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const take = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+    const take = limitNum;
+
+    // List of valid sortable fields
+    const validSortFields = [
+      "dateTime",
+      "title",
+      "createdAt",
+      "maxParticipants",
+      "location",
+    ];
+    const fieldToSort = validSortFields.includes(sortBy) ? sortBy : "dateTime";
 
     // Build the where clause for filtering
     const where = {
       // Category filter - handle multiple categories
       ...(category && {
-        category: Array.isArray(category) ? { in: category } : category,
+        categoryId: Array.isArray(category)
+          ? { in: category.map((c) => parseInt(c)) }
+          : parseInt(category),
       }),
 
       // Location filter - case-insensitive partial match
@@ -46,8 +62,8 @@ export const getEvents = async (req, res) => {
       // Date filter - filter events on specified date
       ...(date && {
         dateTime: {
-          gte: new Date(`${date}T00:00:00`),
-          lt: new Date(`${date}T23:59:59`),
+          gte: new Date(`${date}T00:00:00Z`),
+          lt: new Date(`${date}T23:59:59Z`),
         },
       }),
     };
@@ -62,12 +78,13 @@ export const getEvents = async (req, res) => {
         _count: { select: { participants: true } },
         category: {
           select: {
+            id: true,
             name: true,
           },
         },
       },
       orderBy: {
-        [sortBy]: sortOrder,
+        [fieldToSort]: sortOrder,
       },
       skip,
       take,
@@ -105,9 +122,9 @@ export const getEvents = async (req, res) => {
       events: eventsWithAvailability,
       pagination: {
         total: totalCount,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalCount / parseInt(limit)),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalCount / limitNum),
       },
     });
   } catch (error) {
@@ -119,7 +136,6 @@ export const getEvents = async (req, res) => {
     });
   }
 };
-
 // Create event (protected)
 export const createEvent = async (req, res) => {
   try {

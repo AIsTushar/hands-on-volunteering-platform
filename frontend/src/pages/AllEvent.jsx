@@ -19,6 +19,7 @@ function AllEvent() {
   const [dateFilter, setDateFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("dateTime-desc");
+  const [categories, setCategories] = useState([]);
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,10 @@ function AllEvent() {
 
       // Add category filters (can be multiple)
       if (filters.category && filters.category.length > 0) {
-        filters.category.forEach((cat) => params.append("category", cat));
+        // Convert IDs to strings before appending
+        filters.category.forEach((cat) =>
+          params.append("category", cat.toString()),
+        );
       }
 
       // Add other filters
@@ -56,6 +60,14 @@ function AllEvent() {
         params.set("sortOrder", sortOrder);
       }
 
+      // Fetch categories
+      const categoryResponse = await axios.get(
+        "http://localhost:5000/api/additional/allCategories",
+      );
+
+      setCategories(categoryResponse.data.data);
+
+      // Fetch events with filters
       const response = await axios.get(
         `http://localhost:5000/api/event?${params.toString()}`,
       );
@@ -159,19 +171,15 @@ function AllEvent() {
     });
   };
 
-  const categories = [
-    { id: "Environment", label: "Environmental" },
-    { id: "Education", label: "Education" },
-    { id: "Healthcare", label: "Healthcare" },
-    { id: "Community", label: "Community" },
-    { id: "Animals", label: "Animal Welfare" },
-  ];
-
+  // Fixed toggleCategory function to ensure consistent ID handling
   const toggleCategory = (categoryId) => {
-    if (categoryFilter.includes(categoryId)) {
-      setCategoryFilter(categoryFilter.filter((id) => id !== categoryId));
+    // Parse the ID to ensure it's a number
+    const id = parseInt(categoryId);
+
+    if (categoryFilter.includes(id)) {
+      setCategoryFilter(categoryFilter.filter((catId) => catId !== id));
     } else {
-      setCategoryFilter([...categoryFilter, categoryId]);
+      setCategoryFilter([...categoryFilter, id]);
     }
   };
 
@@ -326,11 +334,13 @@ function AllEvent() {
                       <label key={category.id} className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={categoryFilter.includes(category.id)}
+                          checked={categoryFilter.includes(
+                            parseInt(category.id),
+                          )}
                           onChange={() => toggleCategory(category.id)}
                           className="mr-2 h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
                         />
-                        {category.label}
+                        {category.name}
                       </label>
                     ))}
                   </div>
@@ -359,7 +369,7 @@ function AllEvent() {
                     type="date"
                     value={dateFilter}
                     onChange={(e) => setDateFilter(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 p-2 text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
+                    className="w-full rounded-lg border border-gray-300 p-2 focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
                   />
                 </div>
               </div>
@@ -413,12 +423,9 @@ function AllEvent() {
 
           {!loading && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {events.map(
-                (event) => (
-                  console.log(event),
-                  (<EventCard key={event.id} event={event} />)
-                ),
-              )}
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
             </div>
           )}
         </div>
