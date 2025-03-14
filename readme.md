@@ -53,7 +53,7 @@ HandsOn is a community-driven platform designed to connect individuals with soci
 
 A visual representation of the database structure
 
-![Database Schema](./frontend/public/SchemaDiagram.png)
+![Database Schema](./frontend/public/Schemadiagram.png)
 
 ## Setup Instructions
 
